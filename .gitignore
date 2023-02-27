@@ -1,0 +1,9 @@
+/.*/
+!/.github/
+!/.idea/
+/.idea/*
+!/.idea/icon.svg
+/*.egg-info/
+/build/
+/dist/
+/venv/

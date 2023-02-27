@@ -1,0 +1,22 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+tab_width = 4
+trim_trailing_whitespace = true
+
+ij_continuation_indent_size = 4
+ij_shell_indent_size = 2
+ij_yaml_indent_sequence_value = false
+ij_visual_guides = 80, 120, 160
+
+[*.{md,toml,yaml}]
+indent_size = 2
+ij_continuation_indent_size = 2
+
+[*.sh]
+indent_size = 2

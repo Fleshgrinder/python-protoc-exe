@@ -1,0 +1,23 @@
+[project]
+name = "protoc-exe"
+version = "1.0.0"
+dependencies = [
+  "black~=23.1",
+  "click~=8.1",
+  "click-help-colors~=0.9.1",
+  "pyright~=1.1",
+  "rich~=13.3",
+  "ruff~=0.0.252",
+  "twine~=4.0",
+  "wheel~=0.38",
+]
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+select = ["ALL"]
+ignore = ["ANN002", "ANN003", "ANN101", "ANN401", "D100", "D101", "D102", "D103", "D211", "D213", "INP001"]
+fix = true
+line-length = 120
+respect-gitignore = true

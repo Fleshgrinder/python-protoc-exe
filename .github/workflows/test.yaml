@@ -1,0 +1,90 @@
+name: Test
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_PROGRESS_BAR: off
+  VENV: 'false'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        cache: pip
+        cache-dependency-path: pyproject.toml
+    - run: make venv
+    - run: make format
+    - run: make lint
+    - run: make download
+    - run: make build
+    - run: make assemble
+    - run: make verify
+    - uses: actions/upload-artifact@v3
+      with:
+        name: wheels
+        path: |
+          .python-version
+          bin/test.py
+          dist/*.whl
+        if-no-files-found: error
+  native:
+    name: Native
+    needs: build
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: wheels
+    - uses: actions/setup-python@v4
+    - run: python bin/test.py
+  qemu:
+    name: QEMU
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+        - linux/386
+        - linux/arm64
+        - linux/ppc64le
+        - linux/s390x
+    env:
+      PLATFORM: ${{ matrix.platform }}
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: wheels
+    - uses: docker/setup-qemu-action@v2
+      with:
+        platforms: ${{ matrix.platform }}
+    - run: >-
+        docker pull
+        --platform "$PLATFORM"
+        --quiet
+        "python:$(cat .python-version)"
+    - run: >-
+        docker run
+        --entrypoint python
+        --env CI=true
+        --platform "$PLATFORM"
+        --volume "$PWD:/usr/local/src"
+        --workdir /usr/local/src
+        "python:$(cat .python-version)"
+        bin/test.py

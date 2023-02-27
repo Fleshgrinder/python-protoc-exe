@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+root_dir="$(dirname "$(dirname "$(realpath "$0")")")"
+tag=$(gh api repos/protocolbuffers/protobuf/releases/latest --cache 1h --jq .tag_name)
+cache_dir="$root_dir/.cache/protoc/$tag"
+[[ ! -d $cache_dir ]] || exit 0
+
+printf '\e[0m\e[34mDownloading \e[1m%s\e[22m...\e[0m\n' "$tag" >&2
+mkdir -p "$cache_dir"
+gh release download "$tag" -D "$cache_dir" -p "protoc-${tag#v}-*.zip" -R protocolbuffers/protobuf --skip-existing
+
+license="$cache_dir/LICENSE"
+if [[ ! -f "$license" ]]; then
+  token=$(gh auth token)
+  curl -fsSLo "$license" --proto =https --tlsv1.2 -H "Authorization: Bearer $token" \
+    "https://raw.githubusercontent.com/protocolbuffers/protobuf/$tag/LICENSE"
+fi
